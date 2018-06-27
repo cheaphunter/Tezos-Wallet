@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import styled, { withTheme } from 'styled-components';
+import { clipboard } from 'electron';
 import { darken } from 'polished';
 import AddCircle from 'material-ui/svg-icons/content/add-circle';
 import CloseIcon from 'material-ui/svg-icons/navigation/close';
@@ -11,6 +12,7 @@ import Tooltip from './Tooltip';
 import { H3 } from './Heading';
 import Button from './Button';
 import TezosAmount from './TezosAmount';
+import contentCopy from '../../resources/contentCopy.svg';
 
 import CreateAccountModal from './CreateAccountModal';
 
@@ -95,6 +97,21 @@ const NoSmartAddressesButton = styled(Button)`
   padding: ${ms(-5)} ${ms(1)};
   font-weight: ${({theme: {typo}}) => typo.weights.bold};
 `
+const CopyImage = styled.img`
+  margin-left: ${ms(-4)};
+  with: ${ms(1)};
+  height: ${ms(1)};
+  cursor: pointer;
+`
+const CopyContent = styled.span`
+  display: flex;
+  alignItems: center;
+  font-size: ${ms(0)};
+`
+
+const copyToClipboard = text => {
+  clipboard.writeText(text)
+}
 
 type Props = {
   accountBlock: Object, // TODO: type this
@@ -135,6 +152,8 @@ class AddressBlock extends Component<Props, State> {
   render() {
     const { accountBlock, selectedAccountHash, accountIndex, openCreateAccountModal, theme } = this.props;
     const publicKeyHash = accountBlock.get('publicKeyHash');
+    const balance = accountBlock.get('balance');
+    const formatedBalance = balance.toFixed(6)
     const { shouldHideSmartAddressesInfo } = this.state
     const isManagerActive = publicKeyHash === selectedAccountHash;
     const smartAddresses = accountBlock.get('accounts')
@@ -143,6 +162,23 @@ class AddressBlock extends Component<Props, State> {
       <Container>
         <AddressLabel>
           <AccountTitle>{`Account ${accountIndex}`}</AccountTitle>
+          <TezosAmount
+            color={'primary'}
+            size={ms(1)}
+            amount={ balance }
+            format={2}
+            showTooltip
+            content={
+              <CopyContent>
+                {formatedBalance}
+                <CopyImage
+                  src={contentCopy}
+                  style={{fill: theme.colors.gray2}}
+                  onClick={() => copyToClipboard(formatedBalance)}
+                />
+              </CopyContent>
+            }
+          />
         </AddressLabel>
         <Address
           isActive={isManagerActive}
